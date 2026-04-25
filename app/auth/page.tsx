@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
-import axios from "axios";
+import { apiClient, getApiErrorMessage } from "@/lib/api";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -26,8 +26,7 @@ export default function LoginPage() {
     setError(null);
     
     try {
-      const host = process.env.NEXT_PUBLIC_HOST || "https://risto-ai.vercel.app/";
-      const response = await axios.post(`${host}api/v1/auth/admin/login`, {
+      const response = await apiClient.post("/api/v1/auth/admin/login", {
         email,
         password
       });
@@ -47,12 +46,8 @@ export default function LoginPage() {
       }
 
       router.push("/dashboard");
-    } catch (err: any) {
-      if (axios.isAxiosError(err) && err.response) {
-        setError(err.response.data.message || err.response.data.detail || "Failed to login");
-      } else {
-        setError(err.message || "An error occurred during login.");
-      }
+    } catch (err: unknown) {
+      setError(getApiErrorMessage(err, "Failed to login"));
     } finally {
       setIsLoading(false);
     }

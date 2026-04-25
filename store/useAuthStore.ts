@@ -15,6 +15,7 @@ export interface User {
   subscription_plan_name?: string | null;
   subscription_plan?: string | null;
   subscription_status?: string | null;
+  account_status?: string | null;
   subscription_started_at?: string | null;
   subscription_expires_at?: string | null;
   subscription_selection_required?: boolean;

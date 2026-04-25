@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mail, ArrowLeft, Loader2 } from "lucide-react";
-import axios from "axios";
+import { apiClient, getApiErrorMessage } from "@/lib/api";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -18,8 +18,7 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
 
     try {
-      const host = process.env.NEXT_PUBLIC_HOST || "https://risto-ai.vercel.app/";
-      const response = await axios.post(`${host}api/v1/auth/admin/forgot-password`, { email });
+      const response = await apiClient.post("/api/v1/auth/admin/forgot-password", { email });
 
       const data = response.data;
       console.log("Forgot Password API Response:", data);
@@ -29,12 +28,8 @@ export default function ForgotPasswordPage() {
       } else {
         setError(data.message || "An error occurred");
       }
-    } catch (err: any) {
-      if (axios.isAxiosError(err) && err.response) {
-        setError(err.response.data.message || err.response.data.detail || "An error occurred");
-      } else {
-        setError(err.message || "Network error occurred. Please try again.");
-      }
+    } catch (err: unknown) {
+      setError(getApiErrorMessage(err, "Network error occurred. Please try again."));
     } finally {
       setIsLoading(false);
     }

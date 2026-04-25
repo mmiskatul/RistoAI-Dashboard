@@ -2,7 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import { Search, Bell } from "lucide-react";
+import { Bell } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export default function Header({ title, subtitle }: { title?: string; subtitle?: string }) {

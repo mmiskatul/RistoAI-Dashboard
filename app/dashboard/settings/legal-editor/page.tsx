@@ -3,6 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import Header from "@/components/layout/Header";
 import { useSearchParams } from "next/navigation";
+import { apiClient, getApiErrorMessage } from "@/lib/api";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -13,13 +14,59 @@ import {
   Underline as UnderlineIcon,
   List as ListIcon,
   ListOrdered,
-  Save
+  Save,
+  Loader2
 } from "lucide-react";
+
+type LegalDocumentResponse = {
+  key: string;
+  title: string;
+  content: string;
+  updated_at: string | null;
+  updated_by: string | null;
+};
+
+const documentConfig = {
+  terms: {
+    getEndpoint: "/api/v1/settings/terms-of-service",
+    updateEndpoint: "/api/v1/settings/terms-of-service",
+    fallbackTitle: "Terms of Service",
+  },
+  privacy: {
+    getEndpoint: "/api/v1/settings/privacy-policy",
+    updateEndpoint: "/api/v1/settings/privacy-policy",
+    fallbackTitle: "Privacy Policy",
+  },
+} as const;
+
+const formatLastUpdated = (value: string | null): string => {
+  if (!value) {
+    return "Not updated yet";
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return parsed.toLocaleString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+};
 
 function LegalEditorContent() {
   const searchParams = useSearchParams();
   const initialTab = searchParams?.get("tab") === "privacy" ? "privacy" : "terms";
   const [activeTab, setActiveTab] = useState(initialTab);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [documentMeta, setDocumentMeta] = useState<LegalDocumentResponse | null>(null);
 
   const editor = useEditor({
     extensions: [
@@ -32,17 +79,58 @@ function LegalEditorContent() {
 
   useEffect(() => {
     if (!editor) return;
-    
-    if (activeTab === "terms") {
-      editor.commands.setContent(`<h1>Terms of Service</h1><h2>1. Acceptance of Terms</h2><p>By accessing and using our platform, you agree to be bound by these Terms of Service and all applicable laws and regulations.</p>`);
-    } else {
-      editor.commands.setContent(`<h1>Privacy Policy</h1><h2>1. Information Collection</h2><p>We collect personal information that you provide to us directly, such as when you create an account.</p>`);
-    }
+
+    const fetchDocument = async () => {
+      setLoading(true);
+      setError(null);
+      setSuccessMessage(null);
+
+      try {
+        const config = documentConfig[activeTab];
+        const response = await apiClient.get<LegalDocumentResponse>(config.getEndpoint);
+        setDocumentMeta(response.data);
+        editor.commands.setContent(response.data.content || "");
+      } catch (err: unknown) {
+        setError(getApiErrorMessage(err, `Failed to load ${documentConfig[activeTab].fallbackTitle}`));
+        setDocumentMeta(null);
+        editor.commands.setContent("");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void fetchDocument();
   }, [activeTab, editor]);
 
   if (!editor) {
     return null;
   }
+
+  const handleSave = async () => {
+    setSaving(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const config = documentConfig[activeTab];
+      const content = editor.getText({ blockSeparator: "\n\n" }).trim();
+      const response = await apiClient.put(config.updateEndpoint, { content });
+      const refreshedDocument = response.data?.editor
+        ? await apiClient.get<LegalDocumentResponse>(config.getEndpoint)
+        : null;
+
+      if (refreshedDocument) {
+        setDocumentMeta(refreshedDocument.data);
+        editor.commands.setContent(refreshedDocument.data.content || "");
+      }
+
+      setSuccessMessage("Changes saved");
+    } catch (err: unknown) {
+      setError(getApiErrorMessage(err, "Failed to save changes"));
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="flex-1 min-h-screen bg-white dark:bg-black">
@@ -54,19 +142,29 @@ function LegalEditorContent() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
             <h1 className="text-2xl font-black text-gray-900 dark:text-white">Legal Content Editor</h1>
-            <p className="text-sm font-medium text-gray-500 mt-1">Last updated: January 15, 2025 at 2:30 PM</p>
+            <p className="text-sm font-medium text-gray-500 mt-1">
+              Last updated: {formatLastUpdated(documentMeta?.updated_at ?? null)}
+            </p>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-1.5 text-sm font-medium text-gray-500 dark:text-gray-400">
               <Clock className="h-4 w-4" />
-              Auto-save enabled
+              {documentMeta?.updated_by ? `Updated by ${documentMeta.updated_by}` : "Manual save"}
             </div>
-            <div className="flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 border border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-800/20">
-              <div className="h-2 w-2 rounded-full bg-emerald-500"></div>
-              <span className="text-xs font-bold text-emerald-700 dark:text-emerald-500">Draft saved</span>
-            </div>
+            {successMessage ? (
+              <div className="flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 border border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-800/20">
+                <div className="h-2 w-2 rounded-full bg-emerald-500"></div>
+                <span className="text-xs font-bold text-emerald-700 dark:text-emerald-500">{successMessage}</span>
+              </div>
+            ) : null}
           </div>
         </div>
+
+        {error ? (
+          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+            {error}
+          </div>
+        ) : null}
 
         {/* Tabs */}
         <div className="flex items-center gap-8 border-b border-gray-100 mb-8 dark:border-gray-800 overflow-x-auto">
@@ -157,15 +255,25 @@ function LegalEditorContent() {
 
           {/* Editor Content Box */}
           <div className="bg-white dark:bg-gray-900">
-            <EditorContent editor={editor} />
+            {loading ? (
+              <div className="flex min-h-[500px] items-center justify-center text-sm font-medium text-gray-500 dark:text-gray-400">
+                Loading content...
+              </div>
+            ) : (
+              <EditorContent editor={editor} />
+            )}
           </div>
         </div>
 
         {/* Action Bottom */}
         <div className="flex justify-end mt-8">
-          <button className="flex items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-8 py-3 text-sm font-bold text-white shadow-md shadow-[var(--color-primary)]/20 transition-all hover:bg-[var(--color-primary-hover)] active:scale-95">
-            <Save className="h-4 w-4" />
-            Save Changes
+          <button
+            onClick={() => void handleSave()}
+            disabled={saving || loading}
+            className="flex items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-8 py-3 text-sm font-bold text-white shadow-md shadow-[var(--color-primary)]/20 transition-all hover:bg-[var(--color-primary-hover)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {saving ? "Saving..." : "Save Changes"}
           </button>
         </div>
       </main>

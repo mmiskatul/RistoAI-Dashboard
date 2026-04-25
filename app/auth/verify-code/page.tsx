@@ -4,8 +4,8 @@ import React, { useState, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
-import axios from "axios";
 import toast from "react-hot-toast";
+import { apiClient, getApiErrorMessage } from "@/lib/api";
 
 function VerifyCodeContent() {
   const [otp, setOtp] = useState(["", "", "", ""]);
@@ -26,20 +26,15 @@ function VerifyCodeContent() {
     if (isResending) return;
     setIsResending(true);
     try {
-      const host = process.env.NEXT_PUBLIC_HOST || "https://risto-ai.vercel.app/";
-      const response = await axios.post(`${host}api/v1/auth/admin/forgot-password`, { email });
+      const response = await apiClient.post("/api/v1/auth/admin/forgot-password", { email });
       console.log("Resend API Response:", response.data);
       if (response.data && response.data.message === "Verification code sent for admin password reset") {
         toast.success("Verification code resent to your email!");
       } else {
         toast.error(response.data.message || "Failed to resend code");
       }
-    } catch (err: any) {
-      if (axios.isAxiosError(err) && err.response) {
-        toast.error(err.response.data.message || err.response.data.detail || "Failed to resend code");
-      } else {
-        toast.error("Network error occurred.");
-      }
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, "Failed to resend code"));
     } finally {
       setIsResending(false);
     }
@@ -84,8 +79,7 @@ function VerifyCodeContent() {
 
     setIsLoading(true);
     try {
-      const host = process.env.NEXT_PUBLIC_HOST || "https://risto-ai.vercel.app/";
-      const response = await axios.post(`${host}api/v1/auth/admin/reset-password`, {
+      const response = await apiClient.post("/api/v1/auth/admin/reset-password", {
         email,
         code,
         new_password: password,
@@ -95,12 +89,8 @@ function VerifyCodeContent() {
       if (response.data) {
         router.push("/auth/success");
       }
-    } catch (err: any) {
-      if (axios.isAxiosError(err) && err.response) {
-        setError(err.response.data.message || err.response.data.detail || "Failed to reset password");
-      } else {
-        setError(err.message || "Network error occurred.");
-      }
+    } catch (err: unknown) {
+      setError(getApiErrorMessage(err, "Failed to reset password"));
     } finally {
       setIsLoading(false);
     }
@@ -194,7 +184,7 @@ function VerifyCodeContent() {
 
         <div className="text-center space-y-4">
           <p className="text-sm text-gray-500">
-            Didn't receive OTP?{" "}
+            Didn&apos;t receive OTP?{" "}
             <button 
               type="button" 
               onClick={handleResend}
