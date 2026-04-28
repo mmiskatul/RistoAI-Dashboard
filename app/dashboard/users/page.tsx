@@ -85,7 +85,7 @@ const initialsForName = (name: string): string =>
 
 function SummaryCardSkeleton() {
   return (
-    <div className="rounded-[28px] border border-[#D4CDC7] bg-white p-6 shadow-[0_10px_24px_rgba(35,24,14,0.05)]">
+    <div className="rounded-[28px] border border-[#D4CDC7] bg-white p-6 shadow-[0_10px_24px_rgba(35,24,14,0.05)] dark:border-gray-800 dark:bg-gray-900">
       <div className="animate-pulse">
         <div className="h-5 w-28 rounded-lg bg-[#F1E5DA]" />
         <div className="mt-5 flex items-end gap-4">
@@ -99,7 +99,7 @@ function SummaryCardSkeleton() {
 
 function TableSkeleton() {
   return (
-    <div className="overflow-hidden rounded-[28px] border border-[#D7DEE8] bg-white shadow-[0_10px_24px_rgba(35,24,14,0.05)]">
+    <div className="overflow-hidden rounded-[28px] border border-[#D7DEE8] bg-white shadow-[0_10px_24px_rgba(35,24,14,0.05)] dark:border-gray-800 dark:bg-gray-900">
       <div className="animate-pulse">
         <div className="grid grid-cols-[2.2fr_1.6fr_1.2fr_1fr_1.2fr_1.1fr_0.8fr] gap-4 border-b border-[#E4EAF2] bg-[#F8FBFF] px-6 py-5">
           {Array.from({ length: 7 }).map((_, index) => (
@@ -329,17 +329,17 @@ export default function UsersManagement() {
   };
 
   return (
-    <div className="flex-1 bg-[#FFFDFC] pb-10">
+    <div className="flex-1 bg-[var(--color-background)] pb-10 dark:bg-black">
       <title>Users Management | Aldo</title>
       <Header title="Users Management" subtitle="Manage restaurant owners and user accounts across the platform." />
 
       <main className="space-y-8 p-8">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div>
-            <h1 className="text-[2.15rem] font-extrabold tracking-tight text-[#23262F]">
+            <h1 className="text-[2.15rem] font-extrabold tracking-tight text-[#23262F] dark:text-white">
               Users Management
             </h1>
-            <p className="mt-2 max-w-xl text-[1.05rem] leading-7 text-[#70819A]">
+            <p className="mt-2 max-w-xl text-[1.05rem] leading-7 text-[#70819A] dark:text-gray-400">
               Manage restaurant owners and user accounts across the platform.
             </p>
           </div>
@@ -347,18 +347,18 @@ export default function UsersManagement() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <div className="relative w-full sm:w-[320px] lg:w-[360px]">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-5">
-                <Search className="h-5 w-5 text-[#94A3B8]" />
+                <Search className="h-5 w-5 text-[#94A3B8] dark:text-gray-500" />
               </div>
               <input
                 type="text"
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
                 placeholder="Search users, restaurants..."
-                className="block h-[46px] w-full rounded-full border border-[#C7CED8] bg-white py-3 pl-12 pr-4 text-[1.02rem] font-medium text-[#334155] shadow-[0_6px_18px_rgba(35,24,14,0.04)] outline-none placeholder:text-[#7A8798] focus:border-[#FF8C42] focus:ring-2 focus:ring-[#FF8C42]/10"
+                className="block h-[46px] w-full rounded-full border border-[#C7CED8] bg-white py-3 pl-12 pr-4 text-[1.02rem] font-medium text-[#334155] shadow-[0_6px_18px_rgba(35,24,14,0.04)] outline-none placeholder:text-[#7A8798] focus:border-[#FF8C42] focus:ring-2 focus:ring-[#FF8C42]/10 dark:border-gray-800 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500"
               />
             </div>
 
-            <button className="inline-flex h-[46px] items-center justify-center gap-2 rounded-full border border-[#C7CED8] bg-white px-6 text-[1.02rem] font-semibold text-[#23262F] shadow-[0_6px_18px_rgba(35,24,14,0.04)] transition-all hover:bg-[#FFF9F4]">
+            <button className="inline-flex h-[46px] items-center justify-center gap-2 rounded-full border border-[#C7CED8] bg-white px-6 text-[1.02rem] font-semibold text-[#23262F] shadow-[0_6px_18px_rgba(35,24,14,0.04)] transition-all hover:bg-[#FFF9F4] dark:border-gray-800 dark:bg-gray-900 dark:text-white dark:hover:bg-gray-800">
               <SlidersHorizontal className="h-5 w-5" />
               Filters
             </button>
@@ -371,11 +371,11 @@ export default function UsersManagement() {
             : stats.map((stat) => (
                 <div
                   key={stat.name}
-                  className="rounded-[28px] border border-[#D4CDC7] bg-white p-6 shadow-[0_10px_24px_rgba(35,24,14,0.05)]"
+                  className="rounded-[28px] border border-[#D4CDC7] bg-white p-6 shadow-[0_10px_24px_rgba(35,24,14,0.05)] dark:border-gray-800 dark:bg-gray-900"
                 >
-                  <p className="text-[1.05rem] font-medium text-[#70819A]">{stat.name}</p>
+                  <p className="text-[1.05rem] font-medium text-[#70819A] dark:text-gray-400">{stat.name}</p>
                   <div className="mt-4 flex items-end gap-4">
-                    <h3 className="text-[2.2rem] font-extrabold tracking-tight text-[#1F2940]">
+                    <h3 className="text-[2.2rem] font-extrabold tracking-tight text-[#1F2940] dark:text-white">
                       {stat.value}
                     </h3>
                     <span
@@ -398,11 +398,11 @@ export default function UsersManagement() {
         ) : loading && !data ? (
           <TableSkeleton />
         ) : (
-          <div className="overflow-hidden rounded-[28px] border border-[#D7DEE8] bg-white shadow-[0_10px_24px_rgba(35,24,14,0.05)]">
+          <div className="overflow-hidden rounded-[28px] border border-[#D7DEE8] bg-white shadow-[0_10px_24px_rgba(35,24,14,0.05)] dark:border-gray-800 dark:bg-gray-900">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1100px] text-left">
-                <thead className="border-b border-[#DDE5EE] bg-[#F7FAFE]">
-                  <tr className="text-[0.95rem] font-extrabold uppercase tracking-[0.06em] text-[#23262F]">
+                <thead className="border-b border-[#DDE5EE] bg-[#F7FAFE] dark:border-gray-800 dark:bg-gray-900">
+                  <tr className="text-[0.95rem] font-extrabold uppercase tracking-[0.06em] text-[#23262F] dark:text-gray-100">
                     <th className="px-6 py-5">User Name</th>
                     <th className="px-6 py-5">Restaurant</th>
                     <th className="px-6 py-5">Location</th>
@@ -416,26 +416,26 @@ export default function UsersManagement() {
                   {data?.items.map((user) => {
                     const resolvedStatus = statusStyles[user.status] || statusStyles.pending;
                     return (
-                      <tr key={user.id} className="border-b border-[#E9EEF4] last:border-b-0">
+                      <tr key={user.id} className="border-b border-[#E9EEF4] last:border-b-0 dark:border-gray-800">
                         <td className="px-6 py-5">
                           <div className="flex items-center gap-4">
                             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#1F2937,#7C4A2D)] text-sm font-extrabold text-white">
                               {initialsForName(user.full_name)}
                             </div>
                             <div>
-                              <p className="text-[1.08rem] font-extrabold text-[#1F2940]">
+                              <p className="text-[1.08rem] font-extrabold text-[#1F2940] dark:text-white">
                                 {user.full_name}
                               </p>
-                              <p className="text-[0.98rem] font-medium text-[#70819A]">
+                              <p className="text-[0.98rem] font-medium text-[#70819A] dark:text-gray-400">
                                 {user.email}
                               </p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-5 text-[1.06rem] font-semibold text-[#1F2940]">
+                        <td className="px-6 py-5 text-[1.06rem] font-semibold text-[#1F2940] dark:text-gray-200">
                           {user.restaurant_name || "No restaurant"}
                         </td>
-                        <td className="px-6 py-5 text-[1.02rem] font-medium text-[#70819A]">
+                        <td className="px-6 py-5 text-[1.02rem] font-medium text-[#70819A] dark:text-gray-400">
                           {user.location || "No location"}
                         </td>
                         <td className="px-6 py-5">
@@ -451,11 +451,11 @@ export default function UsersManagement() {
                             </span>
                           </div>
                         </td>
-                        <td className="px-6 py-5 text-[1rem] font-medium text-[#70819A]">
+                        <td className="px-6 py-5 text-[1rem] font-medium text-[#70819A] dark:text-gray-400">
                           {formatDate(user.join_date)}
                         </td>
                         <td className="px-6 py-5">
-                          <div className="flex items-center justify-center gap-5 text-[#1F1F1F]">
+                          <div className="flex items-center justify-center gap-5 text-[#1F1F1F] dark:text-gray-300">
                             <button
                               onClick={() => setSelectedUser(user)}
                               className="transition-transform hover:scale-110"
@@ -476,7 +476,7 @@ export default function UsersManagement() {
                                     className="fixed inset-0 z-10"
                                     onClick={() => setOpenMenuId(null)}
                                   />
-                                  <div className="absolute right-0 top-8 z-20 min-w-[180px] overflow-hidden rounded-2xl border border-[#E6EAF0] bg-white py-2 shadow-[0_18px_40px_rgba(31,41,64,0.16)]">
+                                  <div className="absolute right-0 top-8 z-20 min-w-[180px] overflow-hidden rounded-2xl border border-[#E6EAF0] bg-white py-2 shadow-[0_18px_40px_rgba(31,41,64,0.16)] dark:border-gray-800 dark:bg-gray-900">
                                     <button
                                       onClick={() =>
                                         setPendingAction({
@@ -485,7 +485,7 @@ export default function UsersManagement() {
                                         })
                                       }
                                       disabled={actionLoadingId === user.id}
-                                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-semibold text-[#1F2940] transition-all hover:bg-[#FFF8F1]"
+                                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-semibold text-[#1F2940] transition-all hover:bg-[#FFF8F1] dark:text-white dark:hover:bg-gray-800"
                                     >
                                       <Ban className="h-4 w-4 text-[#F59E0B]" />
                                       {actionLoadingId === user.id
@@ -504,7 +504,7 @@ export default function UsersManagement() {
                                         })
                                       }
                                       disabled={actionLoadingId === user.id}
-                                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-semibold text-[#F14B61] transition-all hover:bg-[#FFF1F3]"
+                                      className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-semibold text-[#F14B61] transition-all hover:bg-[#FFF1F3] dark:hover:bg-red-900/10"
                                     >
                                       <Trash2 className="h-4 w-4" />
                                       {actionLoadingId === user.id ? "Restricting..." : "Restrict Access"}
@@ -522,14 +522,14 @@ export default function UsersManagement() {
               </table>
             </div>
 
-            <div className="flex flex-col gap-4 border-t border-[#E9EEF4] bg-[#F8FBFF] px-6 py-5 md:flex-row md:items-center md:justify-between">
-              <p className="text-[1rem] font-medium text-[#70819A]">
+            <div className="flex flex-col gap-4 border-t border-[#E9EEF4] bg-[#F8FBFF] px-6 py-5 dark:border-gray-800 dark:bg-gray-900 md:flex-row md:items-center md:justify-between">
+              <p className="text-[1rem] font-medium text-[#70819A] dark:text-gray-400">
                 Showing{" "}
-                <span className="font-semibold text-[#55657D]">
+                <span className="font-semibold text-[#55657D] dark:text-gray-200">
                   {(data!.page - 1) * data!.page_size + 1}
                 </span>{" "}
                 to{" "}
-                <span className="font-semibold text-[#55657D]">
+                <span className="font-semibold text-[#55657D] dark:text-gray-200">
                   {Math.min(data!.page * data!.page_size, data!.total)}
                 </span>{" "}
                 of {data!.total.toLocaleString()} users
@@ -539,7 +539,7 @@ export default function UsersManagement() {
                 <button
                   onClick={() => setPage((current) => Math.max(1, current - 1))}
                   disabled={data!.page === 1}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-[#D7DEE8] bg-white text-[#7A8798] transition-all disabled:opacity-50"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-[#D7DEE8] bg-white text-[#7A8798] transition-all disabled:opacity-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-500"
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </button>
@@ -552,7 +552,7 @@ export default function UsersManagement() {
                       className={`flex h-10 min-w-10 items-center justify-center rounded-full px-3 text-[1rem] font-bold transition-all ${
                         item === data!.page
                           ? "bg-[#FF8C42] text-white shadow-[0_10px_20px_rgba(255,140,66,0.25)]"
-                          : "text-[#1F2940]"
+                          : "text-[#1F2940] dark:text-gray-200"
                       }`}
                     >
                       {item}
@@ -567,7 +567,7 @@ export default function UsersManagement() {
                 <button
                   onClick={() => setPage((current) => Math.min(data!.pages, current + 1))}
                   disabled={data!.page === data!.pages}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-[#D7DEE8] bg-white text-[#1F2940] transition-all disabled:opacity-50"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-[#D7DEE8] bg-white text-[#1F2940] transition-all disabled:opacity-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200"
                 >
                   <ChevronRight className="h-5 w-5" />
                 </button>
@@ -582,25 +582,25 @@ export default function UsersManagement() {
               className="absolute inset-0"
               onClick={() => setSelectedUser(null)}
             />
-            <div className="relative z-10 w-full max-w-3xl overflow-hidden rounded-[32px] border border-[#D7DEE8] bg-white shadow-[0_28px_80px_rgba(31,41,64,0.18)]">
-              <div className="border-b border-[#E9EEF4] bg-[linear-gradient(135deg,#FFF8F1_0%,#F8FBFF_100%)] px-8 py-7">
+            <div className="relative z-10 w-full max-w-3xl overflow-hidden rounded-[32px] border border-[#D7DEE8] bg-white shadow-[0_28px_80px_rgba(31,41,64,0.18)] dark:border-gray-800 dark:bg-gray-950">
+              <div className="border-b border-[#E9EEF4] bg-[linear-gradient(135deg,#FFF8F1_0%,#F8FBFF_100%)] px-8 py-7 dark:border-gray-800 dark:bg-none dark:bg-gray-900">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-4">
                     <div className="flex h-18 w-18 items-center justify-center rounded-[24px] bg-[linear-gradient(135deg,#1F2937,#7C4A2D)] text-xl font-extrabold text-white shadow-[0_12px_24px_rgba(31,41,64,0.18)]">
                       {initialsForName(selectedUser.full_name)}
                     </div>
                     <div>
-                      <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#94A3B8]">
+                      <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#94A3B8] dark:text-gray-500">
                         User Profile
                       </p>
-                      <h2 className="mt-2 text-[1.9rem] font-extrabold tracking-tight text-[#1F2940]">
+                      <h2 className="mt-2 text-[1.9rem] font-extrabold tracking-tight text-[#1F2940] dark:text-white">
                         {selectedUser.full_name}
                       </h2>
-                      <p className="mt-1 text-[1rem] font-medium text-[#70819A]">
+                      <p className="mt-1 text-[1rem] font-medium text-[#70819A] dark:text-gray-400">
                         {selectedUser.email}
                       </p>
                       <div className="mt-4 flex flex-wrap items-center gap-3">
-                        <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1.5 text-sm font-bold text-[#1F2940] shadow-[0_4px_12px_rgba(35,24,14,0.05)]">
+                        <span className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1.5 text-sm font-bold text-[#1F2940] shadow-[0_4px_12px_rgba(35,24,14,0.05)] dark:bg-gray-800 dark:text-white">
                           <span className={`h-2.5 w-2.5 rounded-full ${(statusStyles[selectedUser.status] || statusStyles.pending).dot}`} />
                           {(statusStyles[selectedUser.status] || statusStyles.pending).label}
                         </span>
@@ -612,7 +612,7 @@ export default function UsersManagement() {
                   </div>
                   <button
                     onClick={() => setSelectedUser(null)}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-[#D7DEE8] bg-white text-[#64748B] transition-all hover:border-[#FF8C42] hover:text-[#FF8C42]"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-[#D7DEE8] bg-white text-[#64748B] transition-all hover:border-[#FF8C42] hover:text-[#FF8C42] dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
                   >
                     <X className="h-5 w-5" />
                   </button>
@@ -621,19 +621,19 @@ export default function UsersManagement() {
 
               <div className="grid grid-cols-1 gap-6 px-8 py-8 md:grid-cols-[1.2fr_0.8fr]">
                 <div className="space-y-6">
-                  <div className="rounded-[24px] border border-[#E8EDF4] bg-white p-6 shadow-[0_8px_24px_rgba(35,24,14,0.04)]">
-                    <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#94A3B8]">
+                  <div className="rounded-[24px] border border-[#E8EDF4] bg-white p-6 shadow-[0_8px_24px_rgba(35,24,14,0.04)] dark:border-gray-800 dark:bg-gray-900">
+                    <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#94A3B8] dark:text-gray-500">
                       Personal Information
                     </p>
-                    <h3 className="mt-2 text-[1.25rem] font-extrabold text-[#1F2940]">
+                    <h3 className="mt-2 text-[1.25rem] font-extrabold text-[#1F2940] dark:text-white">
                       Contact and identity
                     </h3>
                     <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
                       <div>
-                        <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#A0AEC0]">
+                        <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#A0AEC0] dark:text-gray-500">
                           Full Name
                         </p>
-                        <p className="mt-2 text-[1rem] font-semibold text-[#1F2940]">
+                        <p className="mt-2 text-[1rem] font-semibold text-[#1F2940] dark:text-gray-200">
                           {selectedUser.full_name}
                         </p>
                       </div>
@@ -672,11 +672,11 @@ export default function UsersManagement() {
                     </div>
                   </div>
 
-                  <div className="rounded-[24px] border border-[#E8EDF4] bg-white p-6 shadow-[0_8px_24px_rgba(35,24,14,0.04)]">
-                    <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#94A3B8]">
+                  <div className="rounded-[24px] border border-[#E8EDF4] bg-white p-6 shadow-[0_8px_24px_rgba(35,24,14,0.04)] dark:border-gray-800 dark:bg-gray-900">
+                    <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#94A3B8] dark:text-gray-500">
                       Restaurant Details
                     </p>
-                    <h3 className="mt-2 text-[1.25rem] font-extrabold text-[#1F2940]">
+                    <h3 className="mt-2 text-[1.25rem] font-extrabold text-[#1F2940] dark:text-white">
                       Operational context
                     </h3>
                     <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -701,8 +701,8 @@ export default function UsersManagement() {
                 </div>
 
                 <div className="space-y-6">
-                  <div className="rounded-[24px] bg-[#FFF9F4] p-6">
-                    <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#94A3B8]">
+                  <div className="rounded-[24px] bg-[#FFF9F4] p-6 dark:bg-gray-900">
+                    <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#94A3B8] dark:text-gray-500">
                       Account Status
                     </p>
                     <div className="mt-5 flex items-center gap-2">
@@ -712,46 +712,46 @@ export default function UsersManagement() {
                       </span>
                     </div>
                     <div className="mt-5 space-y-4">
-                      <div className="rounded-2xl bg-white px-4 py-3 shadow-[0_4px_12px_rgba(35,24,14,0.04)]">
-                        <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#A0AEC0]">
+                      <div className="rounded-2xl bg-white px-4 py-3 shadow-[0_4px_12px_rgba(35,24,14,0.04)] dark:bg-gray-800">
+                        <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#A0AEC0] dark:text-gray-500">
                           Email Verification
                         </p>
-                        <p className="mt-2 text-[1rem] font-semibold text-[#1F2940]">
+                        <p className="mt-2 text-[1rem] font-semibold text-[#1F2940] dark:text-gray-200">
                           {selectedUser.email_verified ? "Verified" : "Not verified"}
                         </p>
                       </div>
-                      <div className="rounded-2xl bg-white px-4 py-3 shadow-[0_4px_12px_rgba(35,24,14,0.04)]">
-                        <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#A0AEC0]">
+                      <div className="rounded-2xl bg-white px-4 py-3 shadow-[0_4px_12px_rgba(35,24,14,0.04)] dark:bg-gray-800">
+                        <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#A0AEC0] dark:text-gray-500">
                           Subscription Status
                         </p>
-                        <p className="mt-2 text-[1rem] font-semibold capitalize text-[#1F2940]">
+                        <p className="mt-2 text-[1rem] font-semibold capitalize text-[#1F2940] dark:text-gray-200">
                           {selectedUser.subscription_status?.replaceAll("_", " ") || "Not assigned"}
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="rounded-[24px] bg-[#F8FBFF] p-6">
-                    <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#94A3B8]">
+                  <div className="rounded-[24px] bg-[#F8FBFF] p-6 dark:bg-gray-900">
+                    <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#94A3B8] dark:text-gray-500">
                       Subscription
                     </p>
-                    <h3 className="mt-2 text-[1.25rem] font-extrabold text-[#1F2940]">
+                    <h3 className="mt-2 text-[1.25rem] font-extrabold text-[#1F2940] dark:text-white">
                       Billing summary
                     </h3>
                     <div className="mt-5 space-y-4">
-                      <div className="rounded-2xl bg-white px-4 py-3 shadow-[0_4px_12px_rgba(35,24,14,0.04)]">
-                        <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#A0AEC0]">
+                      <div className="rounded-2xl bg-white px-4 py-3 shadow-[0_4px_12px_rgba(35,24,14,0.04)] dark:bg-gray-800">
+                        <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#A0AEC0] dark:text-gray-500">
                           Billing Cycle
                         </p>
-                        <p className="mt-2 text-[1rem] font-semibold text-[#1F2940]">
+                        <p className="mt-2 text-[1rem] font-semibold text-[#1F2940] dark:text-gray-200">
                           {formatPlan(selectedUser.subscription_plan)}
                         </p>
                       </div>
-                      <div className="rounded-2xl bg-white px-4 py-3 shadow-[0_4px_12px_rgba(35,24,14,0.04)]">
-                        <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#A0AEC0]">
+                      <div className="rounded-2xl bg-white px-4 py-3 shadow-[0_4px_12px_rgba(35,24,14,0.04)] dark:bg-gray-800">
+                        <p className="text-xs font-extrabold uppercase tracking-[0.12em] text-[#A0AEC0] dark:text-gray-500">
                           Plan Name
                         </p>
-                        <p className="mt-2 text-[1rem] font-semibold text-[#1F2940]">
+                        <p className="mt-2 text-[1rem] font-semibold text-[#1F2940] dark:text-gray-200">
                           {selectedUser.subscription_plan_name || "N/A"}
                         </p>
                       </div>
@@ -760,10 +760,10 @@ export default function UsersManagement() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-3 border-t border-[#E9EEF4] bg-[#FCFDFE] px-7 py-5">
+              <div className="flex items-center justify-end gap-3 border-t border-[#E9EEF4] bg-[#FCFDFE] px-7 py-5 dark:border-gray-800 dark:bg-gray-950">
                 <button
                   onClick={() => setSelectedUser(null)}
-                  className="rounded-full border border-[#D7DEE8] bg-white px-5 py-2.5 text-sm font-bold text-[#1F2940] transition-all hover:bg-[#FFF9F4]"
+                  className="rounded-full border border-[#D7DEE8] bg-white px-5 py-2.5 text-sm font-bold text-[#1F2940] transition-all hover:bg-[#FFF9F4] dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:hover:bg-gray-800"
                 >
                   Close
                 </button>
@@ -778,15 +778,15 @@ export default function UsersManagement() {
               className="absolute inset-0"
               onClick={() => setPendingAction(null)}
             />
-            <div className="relative z-10 w-full max-w-md rounded-[28px] border border-[#D7DEE8] bg-white p-7 text-center shadow-[0_28px_80px_rgba(31,41,64,0.18)]">
-              <h3 className="text-[1.5rem] font-extrabold tracking-tight text-[#1F2940]">
+            <div className="relative z-10 w-full max-w-md rounded-[28px] border border-[#D7DEE8] bg-white p-7 text-center shadow-[0_28px_80px_rgba(31,41,64,0.18)] dark:border-gray-800 dark:bg-gray-950">
+              <h3 className="text-[1.5rem] font-extrabold tracking-tight text-[#1F2940] dark:text-white">
                 {pendingAction.type === "restrict"
                   ? "Restrict account?"
                   : pendingAction.type === "activate"
                     ? "Restore account?"
                     : "Suspend account?"}
               </h3>
-              <p className="mt-3 text-[1rem] leading-7 text-[#70819A]">
+              <p className="mt-3 text-[1rem] leading-7 text-[#70819A] dark:text-gray-400">
                 {pendingAction.type === "restrict"
                   ? `This will block ${pendingAction.user.full_name} from the app and keep their account for support review.`
                   : pendingAction.type === "activate"
@@ -796,7 +796,7 @@ export default function UsersManagement() {
               <div className="mt-7 flex items-center justify-center gap-3">
                 <button
                   onClick={() => setPendingAction(null)}
-                  className="rounded-full border border-[#D7DEE8] bg-white px-5 py-2.5 text-sm font-bold text-[#1F2940] transition-all hover:bg-[#FFF9F4]"
+                  className="rounded-full border border-[#D7DEE8] bg-white px-5 py-2.5 text-sm font-bold text-[#1F2940] transition-all hover:bg-[#FFF9F4] dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:hover:bg-gray-800"
                 >
                   Cancel
                 </button>

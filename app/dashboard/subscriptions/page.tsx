@@ -134,11 +134,11 @@ export default function SubscriptionsManagement() {
   }, [data]);
 
   return (
-    <div className="flex-1 pb-10">
+    <div className="flex-1 bg-[var(--color-background)] pb-10 dark:bg-black">
       <title>Subscriptions Management | Aldo</title>
       <Header title="Subscriptions Management" subtitle="Manage restaurant subscriptions and track platform revenue." />
 
-      <div className="px-8 pt-8 flex justify-end">
+      <div className="flex justify-end px-8 pt-8">
         <Link href="/dashboard/subscriptions/plan" className="inline-flex items-center rounded-full bg-[var(--color-primary)] px-4 py-2 text-sm font-bold text-white shadow-md transition-all hover:bg-[#e07b3a]">
           Subscription Plans
         </Link>
@@ -154,33 +154,33 @@ export default function SubscriptionsManagement() {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {(loading && !data ? Array.from({ length: 4 }) : stats).map((stat, index) => {
             if (!data) {
-              return <div key={index} className="h-36 animate-pulse rounded-2xl border border-gray-100 bg-white" />;
+              return <div key={index} className="h-36 animate-pulse rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900" />;
             }
 
             const Icon = stat.icon;
             return (
-              <div key={stat.name} className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+              <div key={stat.name} className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div className="mb-4 flex items-center justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-[var(--color-primary)]">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-[var(--color-primary)] dark:bg-orange-500/10">
                     <Icon className="h-5 w-5" />
                   </div>
-                  <div className="flex items-center gap-1 rounded-full bg-green-50 px-2 py-1 text-xs font-bold text-green-600">
+                  <div className="flex items-center gap-1 rounded-full bg-green-50 px-2 py-1 text-xs font-bold text-green-600 dark:bg-green-500/10 dark:text-green-400">
                     <TrendingUp className="h-3.5 w-3.5" />
                     Live
                   </div>
                 </div>
-                <p className="mb-1 text-sm font-semibold text-gray-500">{stat.name}</p>
-                <h3 className="text-3xl font-bold tracking-tight text-gray-900">{stat.value}</h3>
+                <p className="mb-1 text-sm font-semibold text-gray-500 dark:text-gray-400">{stat.name}</p>
+                <h3 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">{stat.value}</h3>
               </div>
             );
           })}
         </div>
 
-        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Subscription Revenue</h3>
-              <p className="text-sm text-gray-400">Revenue growth from the active subscription data.</p>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Subscription Revenue</h3>
+              <p className="text-sm text-gray-400 dark:text-gray-500">Revenue growth from the active subscription data.</p>
             </div>
             <select
               value={months}
@@ -188,7 +188,7 @@ export default function SubscriptionsManagement() {
                 setPage(1);
                 setMonths(Number(event.target.value));
               }}
-              className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-2 text-sm font-bold text-gray-700 outline-none"
+              className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-2 text-sm font-bold text-gray-700 outline-none dark:border-gray-800 dark:bg-gray-800 dark:text-gray-200"
             >
               <option value={6}>Last 6 months</option>
               <option value={12}>Last 12 months</option>
@@ -208,18 +208,18 @@ export default function SubscriptionsManagement() {
           </ResponsiveContainer>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-          <div className="flex flex-col gap-4 border-b border-gray-50 p-6 xl:flex-row xl:items-center xl:justify-between">
+        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+          <div className="flex flex-col gap-4 border-b border-gray-50 p-6 dark:border-gray-800 xl:flex-row xl:items-center xl:justify-between">
             <div className="relative w-full xl:w-96">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                <Search className="h-4.5 w-4.5 text-gray-400" />
+                <Search className="h-4.5 w-4.5 text-gray-400 dark:text-gray-500" />
               </div>
               <input
                 type="text"
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
                 placeholder="Search by name, restaurant or email..."
-                className="block w-full rounded-full bg-gray-50 py-3 pl-12 pr-4 text-sm outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                className="block w-full rounded-full bg-gray-50 py-3 pl-12 pr-4 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:ring-2 focus:ring-[var(--color-primary)]/20 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
               />
             </div>
 
@@ -240,8 +240,8 @@ export default function SubscriptionsManagement() {
                   }}
                   className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
                     status === item.key
-                      ? "border border-orange-100 bg-white text-[var(--color-primary)] shadow-sm"
-                      : "text-gray-500 hover:bg-gray-50"
+                      ? "border border-orange-100 bg-white text-[var(--color-primary)] shadow-sm dark:border-orange-500/20 dark:bg-gray-800"
+                      : "text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800"
                   }`}
                 >
                   {item.label}
@@ -252,7 +252,7 @@ export default function SubscriptionsManagement() {
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-gray-50 bg-white text-xs font-bold tracking-wider text-gray-900">
+              <thead className="border-b border-gray-50 bg-white text-xs font-bold tracking-wider text-gray-900 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-100">
                 <tr>
                   <th className="px-6 py-5">User</th>
                   <th className="px-6 py-5">Restaurant</th>
@@ -263,19 +263,19 @@ export default function SubscriptionsManagement() {
                   <th className="px-6 py-5">Next Billing</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                 {(data?.items ?? []).map((item) => (
-                  <tr key={item.user_id} className="hover:bg-gray-50/30">
+                  <tr key={item.user_id} className="hover:bg-gray-50/30 dark:hover:bg-gray-800/40">
                     <td className="px-6 py-4">
                       <div>
-                        <p className="font-bold text-gray-900">{item.full_name}</p>
-                        <p className="text-xs text-gray-500">{item.email}</p>
+                        <p className="font-bold text-gray-900 dark:text-white">{item.full_name}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{item.email}</p>
                       </div>
                     </td>
-                    <td className="px-6 py-4 font-medium text-gray-700">{item.restaurant_name || "No restaurant"}</td>
-                    <td className="px-6 py-4 font-bold text-gray-700">{item.plan_name || "No plan"}</td>
+                    <td className="px-6 py-4 font-medium text-gray-700 dark:text-gray-300">{item.restaurant_name || "No restaurant"}</td>
+                    <td className="px-6 py-4 font-bold text-gray-700 dark:text-gray-200">{item.plan_name || "No plan"}</td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex rounded bg-gray-100 px-2 py-1 text-[10px] font-bold text-gray-700">
+                      <span className="inline-flex rounded bg-gray-100 px-2 py-1 text-[10px] font-bold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
                         {formatCycle(item.billing_cycle)}
                       </span>
                     </td>
@@ -285,11 +285,11 @@ export default function SubscriptionsManagement() {
                           {item.status.toUpperCase()}
                         </span>
                       ) : (
-                        <span className="text-xs text-gray-400">N/A</span>
+                        <span className="text-xs text-gray-400 dark:text-gray-500">N/A</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-xs font-medium text-gray-500">{formatDate(item.start_date)}</td>
-                    <td className="px-6 py-4 text-xs font-medium text-gray-500">{formatDate(item.next_billing)}</td>
+                    <td className="px-6 py-4 text-xs font-medium text-gray-500 dark:text-gray-400">{formatDate(item.start_date)}</td>
+                    <td className="px-6 py-4 text-xs font-medium text-gray-500 dark:text-gray-400">{formatDate(item.next_billing)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -297,22 +297,22 @@ export default function SubscriptionsManagement() {
           </div>
 
           <div className="flex flex-col items-center justify-between gap-4 px-6 py-4 md:flex-row">
-            <p className="text-xs font-semibold text-gray-400">
+            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500">
               Showing{" "}
-              <span className="font-bold text-gray-900">
+              <span className="font-bold text-gray-900 dark:text-white">
                 {data ? (data.page - 1) * data.page_size + 1 : 0}
               </span>{" "}
               to{" "}
-              <span className="font-bold text-gray-900">
+              <span className="font-bold text-gray-900 dark:text-white">
                 {data ? Math.min(data.page * data.page_size, data.total) : 0}
               </span>{" "}
-              of <span className="font-bold text-gray-900">{data?.total ?? 0}</span> entries
+              of <span className="font-bold text-gray-900 dark:text-white">{data?.total ?? 0}</span> entries
             </p>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setPage((current) => Math.max(1, current - 1))}
                 disabled={!data || data.page === 1}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-100 bg-white text-gray-400 disabled:opacity-50"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-100 bg-white text-gray-400 disabled:opacity-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-500"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
@@ -322,7 +322,7 @@ export default function SubscriptionsManagement() {
               <button
                 onClick={() => setPage((current) => (data ? Math.min(data.pages, current + 1) : current))}
                 disabled={!data || data.page === data.pages}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-100 bg-white text-gray-400 disabled:opacity-50"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-100 bg-white text-gray-400 disabled:opacity-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-500"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
