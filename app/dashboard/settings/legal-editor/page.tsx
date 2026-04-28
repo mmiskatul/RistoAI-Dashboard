@@ -39,6 +39,8 @@ const documentConfig = {
   },
 } as const;
 
+type LegalTab = keyof typeof documentConfig;
+
 const formatLastUpdated = (value: string | null): string => {
   if (!value) {
     return "Not updated yet";
@@ -60,8 +62,8 @@ const formatLastUpdated = (value: string | null): string => {
 
 function LegalEditorContent() {
   const searchParams = useSearchParams();
-  const initialTab = searchParams?.get("tab") === "privacy" ? "privacy" : "terms";
-  const [activeTab, setActiveTab] = useState(initialTab);
+  const initialTab: LegalTab = searchParams?.get("tab") === "privacy" ? "privacy" : "terms";
+  const [activeTab, setActiveTab] = useState<LegalTab>(initialTab);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);

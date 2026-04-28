@@ -44,6 +44,12 @@ type SubscriptionOverviewResponse = {
   }>;
 };
 
+type SummaryStat = {
+  name: string;
+  value: string;
+  icon: typeof Users;
+};
+
 const PAGE_SIZE = 10;
 
 const formatCurrency = (value: number) =>
@@ -152,11 +158,14 @@ export default function SubscriptionsManagement() {
         ) : null}
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {(loading && !data ? Array.from({ length: 4 }) : stats).map((stat, index) => {
-            if (!data) {
-              return <div key={index} className="h-36 animate-pulse rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900" />;
-            }
-
+          {loading && !data
+            ? Array.from({ length: 4 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="h-36 animate-pulse rounded-2xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900"
+                />
+              ))
+            : stats.map((stat: SummaryStat) => {
             const Icon = stat.icon;
             return (
               <div key={stat.name} className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
@@ -198,7 +207,7 @@ export default function SubscriptionsManagement() {
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={data?.revenue_chart ?? []} barSize={60}>
               <XAxis dataKey="label" stroke="#94a3b8" fontSize={10} fontWeight={700} tickLine={false} axisLine={false} tickMargin={10} />
-              <Tooltip cursor={{ fill: "transparent" }} formatter={(value: number) => formatCurrency(value)} />
+              <Tooltip cursor={{ fill: "transparent" }} formatter={(value: unknown) => formatCurrency(Number(value || 0))} />
               <Bar dataKey="value" radius={[8, 8, 0, 0]}>
                 {(data?.revenue_chart ?? []).map((entry, index, list) => (
                   <Cell key={`${entry.label}-${index}`} fill={index === list.length - 1 ? "var(--color-primary)" : "#FFCDB2"} />
