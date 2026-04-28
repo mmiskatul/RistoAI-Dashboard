@@ -1,11 +1,11 @@
 import axios, { AxiosError } from "axios";
 
-const FALLBACK_API_BASE_URL = "http://127.0.0.1:8000";
+const DEFAULT_API_PROXY_BASE_URL = "/api/backend";
 
 const normalizeBaseUrl = (value: string): string => value.replace(/\/+$/, "");
 
 export const getApiBaseUrl = (): string =>
-  normalizeBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL || FALLBACK_API_BASE_URL);
+  normalizeBaseUrl(process.env.NEXT_PUBLIC_API_PROXY_BASE_URL || DEFAULT_API_PROXY_BASE_URL);
 
 export const apiClient = axios.create({
   baseURL: getApiBaseUrl(),
@@ -125,6 +125,10 @@ apiClient.interceptors.response.use(
 
 export const getApiErrorMessage = (error: unknown, fallback: string): string => {
   if (axios.isAxiosError(error)) {
+    if (error.code === "ERR_NETWORK") {
+      return "Unable to reach the API server. Check the deployed API URL and network access.";
+    }
+
     return (
       error.response?.data?.message ||
       error.response?.data?.detail ||

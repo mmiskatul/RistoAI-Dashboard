@@ -9,8 +9,6 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 FROM base AS builder
-ARG NEXT_PUBLIC_API_BASE_URL
-ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
@@ -18,10 +16,15 @@ RUN npm run build
 FROM node:22-alpine AS runner
 WORKDIR /app
 
+ARG API_BASE_URL
+ARG NEXT_PUBLIC_API_BASE_URL
+
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
+ENV API_BASE_URL=$API_BASE_URL
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 
 RUN addgroup -S nodejs && adduser -S nextjs -G nodejs
 

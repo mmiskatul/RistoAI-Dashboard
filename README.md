@@ -16,6 +16,22 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## API Configuration
+
+Browser requests go through the same-origin Next.js route `/api/backend/*`, which forwards them to the backend configured by `API_BASE_URL`.
+
+For local development, create `.env`:
+
+```bash
+API_BASE_URL=http://127.0.0.1:8000
+```
+
+For Docker deployments, pass the backend URL at runtime:
+
+```bash
+docker run -e API_BASE_URL=https://your-api.example.com -p 3000:3000 aldo-dashboard
+```
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
