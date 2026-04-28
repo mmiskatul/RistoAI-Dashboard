@@ -1,12 +1,48 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
-import React from "react";
-import Image from "next/image";
+import React, { useEffect } from "react";
 import { Bell } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
+import { apiClient } from "@/lib/api";
+
+const displayNameForUser = (user?: { full_name?: string; email?: string } | null): string => {
+  const fullName = user?.full_name?.trim();
+  if (fullName) return fullName;
+  return user?.email?.split("@")[0] || "User";
+};
+
+const initialsForName = (name?: string): string =>
+  (name || "User")
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || "")
+    .join("");
 
 export default function Header({ title, subtitle }: { title?: string; subtitle?: string }) {
   const user = useAuthStore((state) => state.user);
+  const setUser = useAuthStore((state) => state.setUser);
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    const refreshCurrentUser = async () => {
+      try {
+        const response = await apiClient.get("/api/v1/auth/me");
+        setUser(response.data);
+      } catch {
+        // The shared API client handles expired sessions.
+      }
+    };
+
+    void refreshCurrentUser();
+  }, [setUser]);
+
+  const avatarUrl = user?.avatar_url;
+  const displayName = displayNameForUser(user);
+
   return (
     <header className="sticky top-0 z-30 flex h-[72px] w-full items-center justify-between border-b border-gray-100 bg-white px-8 backdrop-blur-md dark:border-gray-800 dark:bg-black/80">
       <div>
@@ -34,18 +70,22 @@ export default function Header({ title, subtitle }: { title?: string; subtitle?:
         <div className="flex items-center gap-3">
           <div className="hidden text-right lg:block">
             <p className="text-sm font-bold text-gray-900 dark:text-white">
-              {user?.full_name || "Admin User"}
+              {displayName}
             </p>
-            <p className="text-xs font-semibold text-gray-400 capitalize">{user?.role || "Admin"}</p>
+            <p className="text-xs font-semibold text-gray-400">{user?.email || "Signed in"}</p>
           </div>
-          <div className="relative h-10 w-10 overflow-hidden rounded-xl border border-gray-100 dark:border-gray-800">
-            <Image
-              src="https://plus.unsplash.com/premium_photo-1671656349322-41de944d259b?w=500&auto=format&fit=crop&q=60"
-              alt="User"
-              fill
-              sizes="40px"
-              className="object-cover"
-            />
+          <div className="relative flex h-10 w-10 overflow-hidden rounded-xl border border-gray-100 bg-[#F4E7DB] dark:border-gray-800">
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={displayName}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-sm font-bold text-[#9A5A2B]">
+                {initialsForName(displayName)}
+              </div>
+            )}
           </div>
         </div>
       </div>

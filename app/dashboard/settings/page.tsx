@@ -5,6 +5,7 @@ import React, { ChangeEvent, useEffect, useMemo, useState } from "react";
 import Header from "@/components/layout/Header";
 import Link from "next/link";
 import { apiClient, getApiErrorMessage } from "@/lib/api";
+import { useAuthStore } from "@/store/useAuthStore";
 import {
   FileText,
   Shield,
@@ -102,6 +103,8 @@ function SettingsSkeleton() {
 }
 
 export default function SettingsPage() {
+  const user = useAuthStore((state) => state.user);
+  const setUser = useAuthStore((state) => state.setUser);
   const [general, setGeneral] = useState<GeneralSettingsResponse | null>(null);
   const [overview, setOverview] = useState<OverviewSettingsResponse | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -216,14 +219,19 @@ export default function SettingsPage() {
       });
 
       if (response.data.general) {
+        const nextProfileImageUrl = response.data.general.profile_image_url;
+
         setGeneral(response.data.general);
         setForm({
           platform_name: response.data.general.platform_name,
           support_email: response.data.general.support_email,
           default_language: response.data.general.default_language,
         });
-        setPreviewUrl(response.data.general.profile_image_url);
+        setPreviewUrl(nextProfileImageUrl);
         setSelectedFile(null);
+        if (user) {
+          setUser({ ...user, avatar_url: nextProfileImageUrl });
+        }
       }
 
       setOverview((current) =>

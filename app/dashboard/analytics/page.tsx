@@ -1,106 +1,276 @@
 "use client";
 
-import React from "react";
+import { useEffect, useMemo, useState } from "react";
 import Header from "@/components/layout/Header";
+import { apiClient, getApiErrorMessage } from "@/lib/api";
 import {
-  Users,
-  CreditCard,
-  Wallet,
   Activity,
-  TrendingUp,
+  CreditCard,
+  Download,
+  RefreshCcw,
   TrendingDown,
-  Download
+  TrendingUp,
+  Users,
+  Wallet,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import {
-  AreaChart,
   Area,
-  BarChart,
+  AreaChart,
   Bar,
+  BarChart,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
 } from "recharts";
 
-const stats = [
-  {
-    name: "Total Users",
-    value: "12,480",
-    change: "+12%",
-    isPositive: true,
-    icon: Users,
-    iconColor: "text-orange-500",
-    bgColor: "bg-orange-50",
-  },
-  {
-    name: "Active Subscriptions",
-    value: "8,920",
-    change: "+5%",
-    isPositive: true,
-    icon: CreditCard,
-    iconColor: "text-orange-500",
-    bgColor: "bg-orange-50",
-  },
-  {
-    name: "Monthly Revenue",
-    value: "$142,500",
-    change: "+18%",
-    isPositive: true,
-    icon: Wallet,
-    iconColor: "text-white",
-    bgColor: "bg-white/20",
-    customClass: "bg-gradient-to-br from-[#B3802C] to-[#8C6219] text-white border-0",
-    customTextColor: "text-white",
-    customLabelColor: "text-white/80",
-    customChangeClass: "bg-white/20 text-white",
-  },
-  {
-    name: "Trial Conversion",
-    value: "14.2%",
-    change: "-2%",
-    isPositive: false,
-    icon: Activity,
-    iconColor: "text-orange-500",
-    bgColor: "bg-orange-50",
-  },
+type AnalyticsRangeKey = "7d" | "30d" | "90d";
+
+type DashboardAnalyticsStatCard = {
+  key: string;
+  label: string;
+  value: number;
+  value_formatted: string;
+  change_percent: number;
+  trend: "up" | "down" | string;
+};
+
+type DashboardAnalyticsPoint = {
+  key: string;
+  label: string;
+  value: number;
+};
+
+type DashboardAnalyticsBreakdownItem = {
+  key: string;
+  label: string;
+  value: number;
+  percentage: number;
+  color_key: string;
+};
+
+type DashboardAnalyticsResponse = {
+  range_key: AnalyticsRangeKey;
+  stat_cards: DashboardAnalyticsStatCard[];
+  user_growth: DashboardAnalyticsPoint[];
+  revenue_growth: DashboardAnalyticsPoint[];
+  subscription_status: DashboardAnalyticsBreakdownItem[];
+  billing_cycle: DashboardAnalyticsBreakdownItem[];
+};
+
+const RANGE_OPTIONS: Array<{ key: AnalyticsRangeKey; label: string }> = [
+  { key: "7d", label: "7 Days" },
+  { key: "30d", label: "30 Days" },
+  { key: "90d", label: "90 Days" },
 ];
 
-const userGrowthData = [
-  { name: "Jan", users: 4000 },
-  { name: "Feb", users: 6000 },
-  { name: "Mar", users: 5500 },
-  { name: "Apr", users: 9000 },
-  { name: "May", users: 12000 },
-  { name: "Jun", users: 8000 },
-  { name: "Jul", users: 15000 },
-];
+const STAT_ICONS: Record<string, LucideIcon> = {
+  total_users: Users,
+  active_subscriptions: CreditCard,
+  monthly_revenue: Wallet,
+  trial_conversion: Activity,
+};
 
-const revenueData = [
-  { name: "MON", revenue: 50 },
-  { name: "TUE", revenue: 80 },
-  { name: "WED", revenue: 60, active: true },
-  { name: "THU", revenue: 100 },
-  { name: "FRI", revenue: 70 },
-  { name: "SAT", revenue: 40 },
-  { name: "SUN", revenue: 45 },
-];
+const BREAKDOWN_COLORS: Record<string, string> = {
+  primary: "var(--color-primary)",
+  dark: "#1F2937",
+  muted: "#D1D5DB",
+};
 
-const subscriptionStatusData = [
-  { name: "Active", value: 6120, color: "var(--color-primary)" },
-  { name: "Trial", value: 1850, color: "#1F2937" },
-  { name: "Cancelled", value: 950, color: "#D1D5DB" }, // lighter gray/gold
-];
+const formatChange = (value: number): string => {
+  const sign = value > 0 ? "+" : "";
+  const decimals = Math.abs(value) >= 10 || value === 0 ? 0 : 1;
+  return `${sign}${value.toFixed(decimals)}%`;
+};
 
-const billingCycleData = [
-  { name: "Monthly", value: 75, color: "var(--color-primary)" },
-  { name: "Yearly", value: 25, color: "#1F2937" },
-];
+const formatCompact = (value: number): string =>
+  new Intl.NumberFormat("en-US", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+
+const formatCurrency = (value: number): string =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value);
+
+const toTooltipNumber = (value: unknown): number =>
+  typeof value === "number" ? value : Number(value || 0);
+
+function MetricCardSkeleton() {
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div className="animate-pulse">
+        <div className="mb-6 flex items-start justify-between">
+          <div className="h-12 w-12 rounded-xl bg-orange-50" />
+          <div className="h-7 w-20 rounded-full bg-gray-100 dark:bg-gray-800" />
+        </div>
+        <div className="h-4 w-28 rounded bg-gray-100 dark:bg-gray-800" />
+        <div className="mt-3 h-8 w-36 rounded bg-gray-200 dark:bg-gray-700" />
+      </div>
+    </div>
+  );
+}
+
+function ChartSkeleton() {
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+      <div className="animate-pulse">
+        <div className="mb-8 flex items-center justify-between">
+          <div className="h-6 w-36 rounded bg-gray-200 dark:bg-gray-700" />
+          <div className="h-6 w-20 rounded-full bg-gray-100 dark:bg-gray-800" />
+        </div>
+        <div className="flex h-[260px] items-end gap-3">
+          {[42, 60, 48, 75, 54, 68, 58].map((height, index) => (
+            <div key={index} className="flex flex-1 flex-col justify-end">
+              <div
+                className="rounded-t-lg bg-orange-50 dark:bg-gray-800"
+                style={{ height: `${height}%` }}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function getBreakdownColor(item: DashboardAnalyticsBreakdownItem): string {
+  return BREAKDOWN_COLORS[item.color_key] || BREAKDOWN_COLORS.muted;
+}
 
 export default function AnalyticsPage() {
+  const [selectedRange, setSelectedRange] = useState<AnalyticsRangeKey>("30d");
+  const [analytics, setAnalytics] = useState<DashboardAnalyticsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await apiClient.get<DashboardAnalyticsResponse>(
+          "/api/v1/dashboard/analytics",
+          { params: { range_key: selectedRange } }
+        );
+        setAnalytics(response.data);
+      } catch (err: unknown) {
+        setError(getApiErrorMessage(err, "Failed to load analytics data"));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void fetchAnalytics();
+  }, [selectedRange]);
+
+  const statCards = useMemo(() => analytics?.stat_cards || [], [analytics]);
+  const userGrowthData = useMemo(
+    () =>
+      analytics?.user_growth.map((point) => ({
+        name: point.label,
+        users: point.value,
+      })) || [],
+    [analytics]
+  );
+  const revenueData = useMemo(() => {
+    const points = analytics?.revenue_growth || [];
+    const peakValue = Math.max(...points.map((point) => point.value), 0);
+
+    return points.map((point) => ({
+      name: point.label,
+      revenue: point.value,
+      active: point.value === peakValue && peakValue > 0,
+    }));
+  }, [analytics]);
+  const subscriptionStatusData = useMemo(
+    () =>
+      analytics?.subscription_status.map((item) => ({
+        ...item,
+        color: getBreakdownColor(item),
+      })) || [],
+    [analytics]
+  );
+  const billingCycleData = useMemo(
+    () =>
+      analytics?.billing_cycle.map((item) => ({
+        ...item,
+        color: getBreakdownColor(item),
+      })) || [],
+    [analytics]
+  );
+  const subscriptionTotal = subscriptionStatusData.reduce((sum, item) => sum + item.value, 0);
+  const billingTotal = billingCycleData.reduce((sum, item) => sum + item.value, 0);
+
+  const handleExportData = () => {
+    if (!analytics) return;
+
+    const blob = new Blob([JSON.stringify(analytics, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `platform-analytics-${analytics.range_key}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  if (loading && !analytics) {
+    return (
+      <div className="flex-1 pb-10">
+        <title>Platform Analytics | Aldo</title>
+        <Header
+          title="Platform Analytics"
+          subtitle="Monitor platform growth, revenue performance, and subscription trends for your restaurant network."
+        />
+        <main className="space-y-8 p-8">
+          <div className="flex justify-end">
+            <div className="h-11 w-72 animate-pulse rounded-full bg-white shadow-sm dark:bg-gray-900" />
+          </div>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <MetricCardSkeleton key={index} />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <ChartSkeleton />
+            <ChartSkeleton />
+          </div>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <ChartSkeleton />
+            <ChartSkeleton />
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error && !analytics) {
+    return (
+      <div className="flex-1 pb-10">
+        <title>Platform Analytics | Aldo</title>
+        <Header
+          title="Platform Analytics"
+          subtitle="Monitor platform growth, revenue performance, and subscription trends for your restaurant network."
+        />
+        <main className="p-8">
+          <div className="rounded-2xl border border-red-100 bg-red-50 p-5 text-sm font-medium text-red-600">
+            {error}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 pb-10">
       <title>Platform Analytics | Aldo</title>
@@ -109,78 +279,92 @@ export default function AnalyticsPage() {
         subtitle="Monitor platform growth, revenue performance, and subscription trends for your restaurant network."
       />
 
-      <main className="p-8 space-y-8">
-        {/* Actions Row */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
-          <div className="flex rounded-full bg-white p-1 shadow-sm border border-gray-100 dark:border-gray-800 dark:bg-gray-900">
-            <button className="rounded-full bg-[var(--color-primary)] px-4 py-2 text-xs font-bold text-white shadow-sm">
-              7 Days
-            </button>
-            <button className="rounded-full px-4 py-2 text-xs font-semibold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-all">
-              30 Days
-            </button>
-            <button className="rounded-full px-4 py-2 text-xs font-semibold text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-all">
-              90 Days
-            </button>
+      <main className="space-y-8 p-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end">
+          <div className="flex rounded-full border border-gray-100 bg-white p-1 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            {RANGE_OPTIONS.map((option) => (
+              <button
+                key={option.key}
+                onClick={() => setSelectedRange(option.key)}
+                className={`rounded-full px-4 py-2 text-xs font-bold transition-all ${
+                  selectedRange === option.key
+                    ? "bg-[var(--color-primary)] text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
           </div>
-          <button className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-5 py-2 text-sm font-bold text-gray-900 shadow-sm transition-all hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-white dark:hover:bg-gray-800">
-            <Download className="h-4 w-4" />
+          <button
+            onClick={handleExportData}
+            disabled={!analytics}
+            className="flex items-center justify-center gap-2 rounded-full border border-gray-200 bg-white px-5 py-2 text-sm font-bold text-gray-900 shadow-sm transition-all hover:bg-gray-50 disabled:opacity-60 dark:border-gray-800 dark:bg-gray-900 dark:text-white dark:hover:bg-gray-800"
+          >
+            {loading ? <RefreshCcw className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
             Export Data
           </button>
         </div>
 
-        {/* Stats Grid */}
+        {error ? (
+          <div className="rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-medium text-red-600">
+            {error}
+          </div>
+        ) : null}
+
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => (
-            <div
-              key={stat.name}
-              className={`rounded-2xl border border-gray-100 p-6 shadow-sm transition-all hover:shadow-md dark:border-gray-800 dark:bg-gray-900 ${
-                stat.customClass ? stat.customClass : "bg-white"
-              }`}
-            >
-              <div className="flex items-start justify-between mb-6">
-                <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${stat.bgColor}`}>
-                  <stat.icon className={`h-6 w-6 ${stat.iconColor}`} />
+          {statCards.map((stat) => {
+            const Icon = STAT_ICONS[stat.key] || Activity;
+            const isPositive = stat.trend !== "down";
+            const isRevenue = stat.key === "monthly_revenue";
+
+            return (
+              <div
+                key={stat.key}
+                className={`rounded-2xl border border-gray-100 p-6 shadow-sm transition-all hover:shadow-md dark:border-gray-800 ${
+                  isRevenue
+                    ? "border-0 bg-gradient-to-br from-[#B3802C] to-[#8C6219] text-white"
+                    : "bg-white dark:bg-gray-900"
+                }`}
+              >
+                <div className="mb-6 flex items-start justify-between">
+                  <div
+                    className={`flex h-12 w-12 items-center justify-center rounded-xl ${
+                      isRevenue ? "bg-white/20" : "bg-orange-50"
+                    }`}
+                  >
+                    <Icon className={`h-6 w-6 ${isRevenue ? "text-white" : "text-orange-500"}`} />
+                  </div>
+                  <div
+                    className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${
+                      isRevenue
+                        ? "bg-white/20 text-white"
+                        : isPositive
+                          ? "bg-green-50 text-green-600 dark:bg-green-900/20"
+                          : "bg-red-50 text-red-600 dark:bg-red-900/20"
+                    }`}
+                  >
+                    {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                    {formatChange(stat.change_percent)}
+                  </div>
                 </div>
-                <div
-                  className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${
-                    stat.customChangeClass
-                      ? stat.customChangeClass
-                      : stat.isPositive
-                      ? "bg-green-50 text-green-600 dark:bg-green-900/20"
-                      : "bg-red-50 text-red-600 dark:bg-red-900/20"
-                  }`}
-                >
-                  {stat.isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                  {stat.change}
-                </div>
+                <p className={`text-sm font-medium ${isRevenue ? "text-white/80" : "text-gray-500 dark:text-gray-400"}`}>
+                  {stat.label}
+                </p>
+                <h3 className={`mt-1 text-2xl font-bold tracking-tight ${isRevenue ? "text-white" : "text-gray-900 dark:text-white"}`}>
+                  {stat.value_formatted}
+                </h3>
               </div>
-              <p
-                className={`text-sm font-medium ${
-                  stat.customLabelColor ? stat.customLabelColor : "text-gray-500 dark:text-gray-400"
-                }`}
-              >
-                {stat.name}
-              </p>
-              <h3
-                className={`text-2xl font-bold tracking-tight mt-1 ${
-                  stat.customTextColor ? stat.customTextColor : "text-gray-900 dark:text-white"
-                }`}
-              >
-                {stat.value}
-              </h3>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
-        {/* Charts Section 1 */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* User Growth Line Chart */}
           <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <div className="flex items-center justify-between mb-6">
+            <div className="mb-6 flex items-center justify-between">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">User Growth</h3>
               <span className="rounded-full bg-gray-50 px-3 py-1 text-xs font-bold text-gray-500 dark:bg-gray-800 dark:text-gray-400">
-                Monthly
+                {RANGE_OPTIONS.find((option) => option.key === selectedRange)?.label}
               </span>
             </div>
             <div className="w-full">
@@ -205,9 +389,10 @@ export default function AnalyticsPage() {
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
-                    tickFormatter={(value) => (value >= 1000 ? `${value / 1000}k` : value)}
+                    tickFormatter={(value) => formatCompact(Number(value))}
                   />
                   <Tooltip
+                    formatter={(value) => [toTooltipNumber(value).toLocaleString(), "Users"]}
                     contentStyle={{
                       borderRadius: "12px",
                       border: "none",
@@ -227,13 +412,12 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          {/* Revenue Growth Bar Chart */}
           <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <div className="flex items-center justify-between mb-6">
+            <div className="mb-6 flex items-center justify-between">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">Revenue Growth</h3>
               <div className="flex gap-1">
-                <div className="h-2 w-2 rounded-full bg-[var(--color-primary)]"></div>
-                <div className="h-2 w-2 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                <div className="h-2 w-2 rounded-full bg-[var(--color-primary)]" />
+                <div className="h-2 w-2 rounded-full bg-gray-200 dark:bg-gray-700" />
               </div>
             </div>
             <div className="w-full">
@@ -248,6 +432,7 @@ export default function AnalyticsPage() {
                     dy={10}
                   />
                   <Tooltip
+                    formatter={(value) => [formatCurrency(toTooltipNumber(value)), "Revenue"]}
                     cursor={{ fill: "transparent" }}
                     contentStyle={{
                       borderRadius: "12px",
@@ -258,9 +443,8 @@ export default function AnalyticsPage() {
                   <Bar dataKey="revenue" radius={[8, 8, 8, 8]}>
                     {revenueData.map((entry, index) => (
                       <Cell
-                        key={`cell-${index}`}
+                        key={`${entry.name}-${index}`}
                         fill={entry.active ? "var(--color-primary)" : "#F1F5F9"}
-                        className="dark:fill-gray-800 dark:active:fill-[var(--color-primary)]"
                       />
                     ))}
                   </Bar>
@@ -270,47 +454,49 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        {/* Charts Section 2 */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* Subscription Status Chart */}
           <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <div className="flex items-center justify-between mb-6">
+            <div className="mb-6 flex items-center justify-between">
               <h3 className="text-lg font-bold text-gray-900 dark:text-white">Subscription Status</h3>
-              <span className="text-xs font-medium italic text-gray-400">Update every 1h</span>
+              <span className="text-xs font-medium italic text-gray-400">Live API data</span>
             </div>
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-8">
-              <div className="relative w-48 h-48">
-                <ResponsiveContainer width="100%" height={192}>
-                  <PieChart>
-                    <Pie
-                      data={subscriptionStatusData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={65}
-                      outerRadius={85}
-                      paddingAngle={0}
-                      dataKey="value"
-                      stroke="none"
-                    >
-                      {subscriptionStatusData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-2xl font-bold text-gray-900 dark:text-white">8,920</span>
+            <div className="flex flex-col items-center justify-between gap-8 sm:flex-row">
+              <div className="relative h-48 w-48">
+                {subscriptionTotal > 0 ? (
+                  <ResponsiveContainer width="100%" height={192}>
+                    <PieChart>
+                      <Pie
+                        data={subscriptionStatusData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={65}
+                        outerRadius={85}
+                        paddingAngle={0}
+                        dataKey="value"
+                        stroke="none"
+                      >
+                        {subscriptionStatusData.map((entry) => (
+                          <Cell key={entry.key} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => [toTooltipNumber(value).toLocaleString(), "Users"]} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : null}
+                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {formatCompact(subscriptionTotal)}
+                  </span>
                   <span className="text-[10px] font-bold text-gray-400">TOTAL</span>
                 </div>
               </div>
 
-              <div className="flex-1 space-y-4 w-full">
+              <div className="w-full flex-1 space-y-4">
                 {subscriptionStatusData.map((item) => (
-                  <div key={item.name} className="flex items-center justify-between">
+                  <div key={item.key} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                      <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{item.name}</span>
+                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
+                      <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{item.label}</span>
                     </div>
                     <span className="text-sm font-bold text-gray-900 dark:text-white">
                       {item.value.toLocaleString()}
@@ -321,41 +507,48 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          {/* Billing Cycle Chart */}
           <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Billing Cycle</h3>
+            <h3 className="mb-6 text-lg font-bold text-gray-900 dark:text-white">Billing Cycle</h3>
             <div className="flex flex-col items-center">
-              <div className="relative w-48 h-48 mb-8">
-                <ResponsiveContainer width="100%" height={192}>
-                  <PieChart>
-                    <Pie
-                      data={billingCycleData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={85}
-                      dataKey="value"
-                      stroke="none"
-                    >
-                      {billingCycleData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
+              <div className="relative mb-8 h-48 w-48">
+                {billingTotal > 0 ? (
+                  <ResponsiveContainer width="100%" height={192}>
+                    <PieChart>
+                      <Pie
+                        data={billingCycleData}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={85}
+                        dataKey="value"
+                        stroke="none"
+                      >
+                        {billingCycleData.map((entry) => (
+                          <Cell key={entry.key} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => [toTooltipNumber(value).toLocaleString(), "Subscriptions"]} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex h-full items-center justify-center rounded-full border border-dashed border-gray-200 text-xs font-bold uppercase tracking-wide text-gray-400 dark:border-gray-700">
+                    No Active Plans
+                  </div>
+                )}
               </div>
 
               <div className="w-full space-y-3">
                 {billingCycleData.map((item) => (
                   <div
-                    key={item.name}
+                    key={item.key}
                     className="flex items-center justify-between rounded-xl bg-gray-50 p-4 dark:bg-gray-800"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                      <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{item.name}</span>
+                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
+                      <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{item.label}</span>
                     </div>
-                    <span className="text-sm font-bold text-gray-900 dark:text-white">{item.value}%</span>
+                    <span className="text-sm font-bold text-gray-900 dark:text-white">
+                      {item.percentage.toFixed(0)}%
+                    </span>
                   </div>
                 ))}
               </div>
