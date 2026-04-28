@@ -7,6 +7,7 @@ type RouteContext = {
 };
 
 const FALLBACK_BACKEND_API_BASE_URL = "http://127.0.0.1:8000";
+const BACKEND_REQUEST_TIMEOUT_MS = 15_000;
 
 const HOP_BY_HOP_HEADERS = new Set([
   "connection",
@@ -62,6 +63,7 @@ const forwardToBackend = async (request: NextRequest, context: RouteContext) => 
       headers: createForwardHeaders(request),
       body: hasBody ? await request.arrayBuffer() : undefined,
       redirect: "manual",
+      signal: AbortSignal.timeout(BACKEND_REQUEST_TIMEOUT_MS),
     });
 
     return new Response(backendResponse.body, {
