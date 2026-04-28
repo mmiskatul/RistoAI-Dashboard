@@ -53,6 +53,31 @@ type DashboardOverviewResponse = {
   meta: {
     year: number;
   };
+  recent_daily_data: Array<{
+    id: string;
+    restaurant_name: string;
+    business_date: string;
+    total_revenue: number;
+    total_expenses: number;
+    total_covers: number;
+  }>;
+  recent_cash_deposits: Array<{
+    id: string;
+    restaurant_name: string;
+    deposit_date: string;
+    amount: number;
+    bank_account?: string | null;
+    reference?: string | null;
+  }>;
+  recent_inventory_items: Array<{
+    id: string;
+    restaurant_name: string;
+    product_name: string;
+    category: string;
+    stock_quantity: number;
+    unit_type: string;
+    stock_status?: string | null;
+  }>;
 };
 
 const PIE_COLORS: Record<string, string> = {
@@ -89,6 +114,23 @@ const formatCompact = (value: number): string =>
   }).format(value);
 
 const formatPercent = (value: number): string => `${Math.round(value)}%`;
+const toNumericTooltipValue = (value: unknown): number =>
+  typeof value === "number" ? value : Number(value || 0);
+
+const formatDate = (value: string): string => {
+  if (!value) {
+    return "-";
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+  return parsed.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
 
 function MetricCardSkeleton() {
   return (
@@ -246,6 +288,54 @@ export default function AdminDashboard() {
       : overview.charts.monthly_revenue;
   }, [overview, revenuePeriod]);
 
+  const operationalSections = useMemo(
+    () =>
+      overview
+        ? [
+      {
+        key: "daily-data",
+        title: "Daily Data",
+        subtitle: "Actual rows from restaurant daily data",
+        headers: ["Restaurant", "Date", "Revenue", "Expenses", "Covers"],
+        rows: overview.recent_daily_data.map((item) => [
+          item.restaurant_name,
+          formatDate(item.business_date),
+          formatCurrency(item.total_revenue),
+          formatCurrency(item.total_expenses),
+          item.total_covers.toLocaleString(),
+        ]),
+      },
+      {
+        key: "cash-management",
+        title: "Cash Management",
+        subtitle: "Actual rows from restaurant cash deposits",
+        headers: ["Restaurant", "Date", "Amount", "Bank", "Reference"],
+        rows: overview.recent_cash_deposits.map((item) => [
+          item.restaurant_name,
+          formatDate(item.deposit_date),
+          formatCurrency(item.amount),
+          item.bank_account || "-",
+          item.reference || "-",
+        ]),
+      },
+      {
+        key: "inventory",
+        title: "Inventory Items",
+        subtitle: "Actual rows from restaurant inventory",
+        headers: ["Restaurant", "Item", "Category", "Stock", "Status"],
+        rows: overview.recent_inventory_items.map((item) => [
+          item.restaurant_name,
+          item.product_name,
+          item.category,
+          `${item.stock_quantity} ${item.unit_type}`,
+          item.stock_status || "-",
+        ]),
+      },
+    ]
+        : [],
+    [overview]
+  );
+
   if (loading) {
     return (
       <div className="flex-1 bg-[#FFFDFC] pb-10">
@@ -376,7 +466,7 @@ export default function AdminDashboard() {
                 />
                 <Tooltip
                   cursor={{ fill: "#FFF7F1" }}
-                  formatter={(value: number) => [formatCurrency(value), "Revenue"]}
+                  formatter={(value) => [formatCurrency(toNumericTooltipValue(value)), "Revenue"]}
                   contentStyle={{
                     borderRadius: "16px",
                     border: "1px solid #E8DDD2",
@@ -421,7 +511,7 @@ export default function AdminDashboard() {
                       />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => [value.toLocaleString(), "Users"]} />
+                  <Tooltip formatter={(value) => [toNumericTooltipValue(value).toLocaleString(), "Users"]} />
                 </PieChart>
               </ResponsiveContainer>
 
@@ -452,6 +542,64 @@ export default function AdminDashboard() {
               ))}
             </div>
           </section>
+        </div>
+
+        <div className="grid grid-cols-1 gap-8 2xl:grid-cols-3">
+          {operationalSections.map((section) => (
+            <section
+              key={section.key}
+              className="overflow-hidden rounded-[28px] border border-[#D4CDC7] bg-white shadow-[0_10px_24px_rgba(35,24,14,0.05)]"
+            >
+              <div className="border-b border-[#EEE5DE] px-6 py-5">
+                <h2 className="text-[1.35rem] font-extrabold tracking-tight text-[#23262F]">
+                  {section.title}
+                </h2>
+                <p className="mt-1 text-sm font-medium text-[#7E879A]">{section.subtitle}</p>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-[#F2EAE3]">
+                  <thead className="bg-[#FFF9F4]">
+                    <tr>
+                      {section.headers.map((header) => (
+                        <th
+                          key={header}
+                          className="px-6 py-3 text-left text-xs font-extrabold uppercase tracking-[0.08em] text-[#7E879A]"
+                        >
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F6EFE8]">
+                    {section.rows.length > 0 ? (
+                      section.rows.map((row, rowIndex) => (
+                        <tr key={`${section.key}-${rowIndex}`} className="align-top">
+                          {row.map((value, cellIndex) => (
+                            <td
+                              key={`${section.key}-${rowIndex}-${cellIndex}`}
+                              className="px-6 py-4 text-sm font-medium text-[#2F3747]"
+                            >
+                              {value}
+                            </td>
+                          ))}
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={section.headers.length}
+                          className="px-6 py-8 text-sm font-medium text-[#7E879A]"
+                        >
+                          No records found.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          ))}
         </div>
       </main>
     </div>
