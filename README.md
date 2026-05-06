@@ -23,7 +23,7 @@ Browser requests go through the same-origin Next.js route `/api/backend/*`, whic
 For local development, create `.env`:
 
 ```bash
-API_BASE_URL=http://127.0.0.1:8000
+API_BASE_URL=https://your-api.example.com
 ```
 
 For Docker deployments, pass the backend URL at runtime:

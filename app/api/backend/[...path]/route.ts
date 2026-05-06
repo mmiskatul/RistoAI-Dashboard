@@ -6,7 +6,6 @@ type RouteContext = {
   }>;
 };
 
-const FALLBACK_BACKEND_API_BASE_URL = "http://127.0.0.1:8000";
 const BACKEND_REQUEST_TIMEOUT_MS = 15_000;
 
 const HOP_BY_HOP_HEADERS = new Set([
@@ -24,12 +23,14 @@ const HOP_BY_HOP_HEADERS = new Set([
 
 const normalizeBaseUrl = (value: string): string => value.replace(/\/+$/, "");
 
-const getBackendApiBaseUrl = (): string =>
-  normalizeBaseUrl(
-    process.env.API_BASE_URL ||
-      process.env.NEXT_PUBLIC_API_BASE_URL ||
-      FALLBACK_BACKEND_API_BASE_URL
-  );
+const getBackendApiBaseUrl = (): string => {
+  const configured = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || "";
+  if (!configured.trim()) {
+    throw new Error("API_BASE_URL is not configured");
+  }
+
+  return normalizeBaseUrl(configured);
+};
 
 const createForwardHeaders = (request: NextRequest): Headers => {
   const headers = new Headers(request.headers);
