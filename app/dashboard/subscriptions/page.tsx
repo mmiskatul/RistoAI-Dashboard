@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
 import { apiClient, getApiErrorMessage } from "@/lib/api";
+import { formatBillingCycle, formatShortDate } from "@/lib/format";
 import {
   Users,
   Hourglass,
@@ -58,19 +59,6 @@ const formatCurrency = (value: number) =>
     currency: "USD",
     maximumFractionDigits: 2,
   }).format(value);
-
-const formatDate = (value: string | null) => {
-  if (!value) return "N/A";
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
-  return parsed.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
-};
-
-const formatCycle = (value: BillingCycle | null) => {
-  if (value === "1_year") return "YEARLY";
-  if (value === "1_month") return "MONTHLY";
-  return "N/A";
-};
 
 const statusClasses: Record<SubscriptionStatus, string> = {
   active: "bg-green-100 text-green-700",
@@ -285,7 +273,7 @@ export default function SubscriptionsManagement() {
                     <td className="px-6 py-4 font-bold text-gray-700 dark:text-gray-200">{item.plan_name || "No plan"}</td>
                     <td className="px-6 py-4">
                       <span className="inline-flex rounded bg-gray-100 px-2 py-1 text-[10px] font-bold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                        {formatCycle(item.billing_cycle)}
+                        {formatBillingCycle(item.billing_cycle)}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -297,8 +285,8 @@ export default function SubscriptionsManagement() {
                         <span className="text-xs text-gray-400 dark:text-gray-500">N/A</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-xs font-medium text-gray-500 dark:text-gray-400">{formatDate(item.start_date)}</td>
-                    <td className="px-6 py-4 text-xs font-medium text-gray-500 dark:text-gray-400">{formatDate(item.next_billing)}</td>
+                    <td className="px-6 py-4 text-xs font-medium text-gray-500 dark:text-gray-400">{formatShortDate(item.start_date)}</td>
+                    <td className="px-6 py-4 text-xs font-medium text-gray-500 dark:text-gray-400">{formatShortDate(item.next_billing)}</td>
                   </tr>
                 ))}
               </tbody>

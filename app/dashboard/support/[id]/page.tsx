@@ -5,6 +5,7 @@ import Header from "@/components/layout/Header";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { apiClient, getApiErrorMessage } from "@/lib/api";
+import { formatShortDateTime } from "@/lib/format";
 import {
   ChevronRight,
   Paperclip,
@@ -58,21 +59,6 @@ type SupportTicketDetailResponse = {
 type SupportTicketActionResponse = {
   message: string;
   ticket: SupportTicketDetailResponse;
-};
-
-const formatDateTime = (value: string): string => {
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return value;
-  }
-
-  return parsed.toLocaleString("en-US", {
-    month: "short",
-    day: "2-digit",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
 };
 
 function TicketDetailSkeleton() {
@@ -229,7 +215,7 @@ export default function TicketProfilePage() {
             </h1>
             {ticket ? (
               <p className="mt-2 text-sm font-semibold text-gray-400">
-                Submitted {formatDateTime(ticket.submitted_at)} by {ticket.customer.user_name}
+                Submitted {formatShortDateTime(ticket.submitted_at)} by {ticket.customer.user_name}
               </p>
             ) : null}
           </div>
@@ -285,7 +271,7 @@ export default function TicketProfilePage() {
                       </div>
                     </div>
                     <span className="mt-1 text-xs font-bold text-gray-400">
-                      {formatDateTime(message.created_at)}
+                      {formatShortDateTime(message.created_at)}
                     </span>
                   </div>
 
@@ -452,7 +438,7 @@ export default function TicketProfilePage() {
                         Resolved At
                       </p>
                       <p className="mt-2 text-sm font-semibold text-[#065F46] dark:text-emerald-200">
-                        {formatDateTime(ticket.resolved_at)}
+                        {formatShortDateTime(ticket.resolved_at)}
                       </p>
                     </div>
                   ) : null}

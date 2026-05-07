@@ -3,6 +3,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Header from "@/components/layout/Header";
 import { apiClient, getApiErrorMessage } from "@/lib/api";
+import { formatShortDate } from "@/lib/format";
+import { buildPaginationItems } from "@/lib/pagination";
 import {
   Search,
   SlidersHorizontal,
@@ -61,18 +63,6 @@ const formatPlan = (plan: string | null): string => {
   if (plan === "1_year") return "1 YEAR";
   if (plan === "1_month") return "1 MONTH";
   return plan.replaceAll("_", " ").toUpperCase();
-};
-
-const formatDate = (value: string): string => {
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return value;
-  }
-  return parsed.toLocaleDateString("en-US", {
-    month: "short",
-    day: "2-digit",
-    year: "numeric",
-  });
 };
 
 const initialsForName = (name: string): string =>
@@ -224,24 +214,7 @@ export default function UsersManagement() {
   const paginationItems = useMemo(() => {
     if (!data) return [];
 
-    const items: Array<number | string> = [];
-    const totalPages = data.pages;
-    const current = data.page;
-
-    if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i += 1) items.push(i);
-      return items;
-    }
-
-    items.push(1);
-    if (current > 3) items.push("...");
-    for (let i = Math.max(2, current - 1); i <= Math.min(totalPages - 1, current + 1); i += 1) {
-      items.push(i);
-    }
-    if (current < totalPages - 2) items.push("...");
-    items.push(totalPages);
-
-    return items;
+    return buildPaginationItems(data.pages, data.page);
   }, [data]);
 
   const updateUserInState = (updatedUser: UserManagementResponse["items"][number]) => {
@@ -452,7 +425,7 @@ export default function UsersManagement() {
                           </div>
                         </td>
                         <td className="px-6 py-5 text-[1rem] font-medium text-[#70819A] dark:text-gray-400">
-                          {formatDate(user.join_date)}
+                          {formatShortDate(user.join_date)}
                         </td>
                         <td className="px-6 py-5">
                           <div className="flex items-center justify-center gap-5 text-[#1F1F1F] dark:text-gray-300">
@@ -658,7 +631,7 @@ export default function UsersManagement() {
                           Joined
                         </p>
                         <p className="mt-2 text-[1rem] font-semibold text-[#1F2940]">
-                          {formatDate(selectedUser.join_date)}
+                          {formatShortDate(selectedUser.join_date)}
                         </p>
                       </div>
                       <div>

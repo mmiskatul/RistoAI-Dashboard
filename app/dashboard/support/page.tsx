@@ -4,6 +4,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import Header from "@/components/layout/Header";
 import Link from "next/link";
 import { apiClient, getApiErrorMessage } from "@/lib/api";
+import { formatShortDate } from "@/lib/format";
+import { buildPaginationItems } from "@/lib/pagination";
 import {
   Search,
   CheckCircle2,
@@ -41,19 +43,6 @@ const tabs = [
   { key: "resolved", label: "Resolved" },
   { key: "all", label: "All Tickets" },
 ] as const;
-
-const formatDate = (value: string): string => {
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return value;
-  }
-
-  return parsed.toLocaleDateString("en-US", {
-    month: "short",
-    day: "2-digit",
-    year: "numeric",
-  });
-};
 
 const initialsForName = (name: string): string =>
   name
@@ -201,24 +190,7 @@ export default function SupportPage() {
   const paginationItems = useMemo(() => {
     if (!data) return [];
 
-    const items: Array<number | string> = [];
-    const totalPages = data.pages;
-    const current = data.page;
-
-    if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i += 1) items.push(i);
-      return items;
-    }
-
-    items.push(1);
-    if (current > 3) items.push("...");
-    for (let i = Math.max(2, current - 1); i <= Math.min(totalPages - 1, current + 1); i += 1) {
-      items.push(i);
-    }
-    if (current < totalPages - 2) items.push("...");
-    items.push(totalPages);
-
-    return items;
+    return buildPaginationItems(data.pages, data.page);
   }, [data]);
 
   return (
@@ -342,7 +314,7 @@ export default function SupportPage() {
                             {ticket.status === "open" ? "Open" : "Resolved"}
                           </span>
                         </td>
-                        <td className="px-6 py-4 font-medium text-gray-500">{formatDate(ticket.date)}</td>
+                        <td className="px-6 py-4 font-medium text-gray-500">{formatShortDate(ticket.date)}</td>
                         <td className="px-6 py-4 text-right">
                           <Link
                             href={`/dashboard/support/${ticket.id}`}
