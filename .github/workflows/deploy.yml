@@ -1,0 +1,100 @@
+name: CI/CD Aldo Dashboard
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aldo-dashboard-production
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Validate Dashboard
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Test production build
+        env:
+          API_BASE_URL: http://127.0.0.1:8000
+          NEXT_PUBLIC_API_PROXY_BASE_URL: /api/backend
+        run: npm run build
+
+  deploy:
+    name: Deploy Dashboard to EC2
+    needs: ci
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy through SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.PORT }}
+          command_timeout: 30m
+
+          script: |
+            set -e
+
+            export PATH=/usr/local/bin:/usr/bin:/bin:$PATH
+
+            cd /home/ubuntu/risto-deploy/aldo-dashboard
+
+            echo "Fetching latest source code..."
+            git fetch origin main
+            git reset --hard origin/main
+
+            echo "Installing production dependencies..."
+            npm ci
+
+            echo "Building Next.js dashboard..."
+            npm run build
+
+            echo "Copying public and static assets..."
+            mkdir -p .next/standalone/.next
+
+            rm -rf .next/standalone/public
+            rm -rf .next/standalone/.next/static
+
+            cp -r public .next/standalone/public
+            cp -r .next/static .next/standalone/.next/static
+
+            echo "Restarting dashboard service..."
+            sudo systemctl restart risto-dashboard.service
+
+            sleep 5
+
+            echo "Checking service status..."
+            sudo systemctl is-active --quiet risto-dashboard.service
+
+            echo "Testing dashboard locally..."
+            curl --fail --silent --show-error \
+              http://127.0.0.1:3000/ > /dev/null
+
+            echo "Deployed commit:"
+            git log -1 --oneline
+
+            echo "Dashboard deployment completed successfully."
